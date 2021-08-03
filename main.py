@@ -1,17 +1,19 @@
 import asyncio
 
+import aiofiles
 
-async def tcp_echo_client(message):
+
+async def chat_client():
     reader, writer = await asyncio.open_connection("minechat.dvmn.org", 5000)
 
-    print(f"Send: {message!r}")
-    writer.write(message.encode())
     while True:
-        data = await reader.read(1000)
-        print(f"{data.decode()}")
+        message = await reader.readline()
+        async with aiofiles.open("chat_logs.txt", "a") as chat_logs:
+            await chat_logs.write(message.decode())
+        print(message.decode())
 
     # writer.close()
 
 
 if __name__ == "__main__":
-    asyncio.run(tcp_echo_client("Hello World!"))
+    asyncio.run(chat_client())
