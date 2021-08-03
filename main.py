@@ -3,8 +3,10 @@ import datetime
 import aiofiles
 import argparse
 
+from sender import chat_sender
 
-async def chat_client(host_, port_, history_):
+
+async def chat_client_reader(host_, port_, history_):
     reader, writer = await asyncio.open_connection(host_, port_)
 
     while True:
@@ -18,8 +20,15 @@ async def chat_client(host_, port_, history_):
     # writer.close()
 
 
+async def main():
+    await asyncio.gather(
+        chat_sender(host, 5050, "a357016c-f451-11eb-8c47-0242ac110002"),
+        chat_client_reader(host, port, history),
+    )
+
+
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description='Connect to chat via socket.')
+    parser = argparse.ArgumentParser(description="Connect to chat via socket.")
     parser.add_argument("--host", help="Specify host to connect.")
     parser.add_argument("--port", help="Specify port to connect.")
     parser.add_argument("--history", help="Specify path to file to save logs.")
@@ -29,4 +38,4 @@ if __name__ == "__main__":
     port = args.port if args.port else 5000
     history = args.host if args.history else "chat_logs.txt"
 
-    asyncio.run(chat_client(host, port, history))
+    asyncio.run(main())
