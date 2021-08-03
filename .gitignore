@@ -2,3 +2,4 @@
 /venv/
 .idea/
 /chat_logs.txt
+/.env
