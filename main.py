@@ -1,26 +1,11 @@
 import asyncio
-import datetime
 import os
 
-import aiofiles
 import argparse
 
+from reader import chat_client_reader
 from sender import chat_sender
 from dotenv import load_dotenv
-
-
-async def chat_client_reader(host_, port_, history_):
-    reader, writer = await asyncio.open_connection(host_, port_)
-
-    while True:
-        message = await reader.readline()
-        timestamp = datetime.datetime.now().strftime("[%Y.%m.%d %H:%M:%S]")
-        message_with_timestamp = f"{timestamp} {message.decode()}"
-        async with aiofiles.open(history_, "a") as chat_logs:
-            await chat_logs.write(message_with_timestamp)
-        print(message_with_timestamp)
-
-    # writer.close()
 
 
 async def main():
