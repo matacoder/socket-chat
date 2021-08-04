@@ -59,6 +59,7 @@ async def login(host_, port_, account_hash, name):
 
 
 async def authenticate(host_, port_, account_hash=None, name="James T. Kirk"):
+    """Login if possible or register new user."""
     if not account_hash:
         account_hash = await register(host_, port_, name=name)
 

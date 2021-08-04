@@ -5,6 +5,7 @@ import aiofiles
 
 
 async def chat_client_reader(host_, port_, history_):
+    """Stream messages from chat to stdout."""
     reader, writer = await asyncio.open_connection(host_, port_)
 
     try:

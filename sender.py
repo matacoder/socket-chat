@@ -9,6 +9,7 @@ from helpers import string_sanitizer
 
 
 async def chat_sender(host_, port_, uid_, username_, message_=None):
+    """Send message to chat after login or registration."""
     writer = await authenticate(host_, port_, uid_, username_)
     if not message_:
         message_ = "Test message"
@@ -30,10 +31,12 @@ if __name__ == "__main__":
     args = parser.parse_args()
     host = args.host if args.host else "minechat.dvmn.org"
     port = args.port if args.port else 5050
+    username = args.username if args.username else None
     message = args.message
 
     load_dotenv()
     uid = os.getenv("uid", None)
-    username = os.getenv("username", "Anonymous")
+    if not username:
+        username = os.getenv("username", "Anonymous")
 
     asyncio.run(chat_sender(host, port, uid, username, message))
