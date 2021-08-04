@@ -39,4 +39,6 @@ if __name__ == "__main__":
     if not username:
         username = os.getenv("username", "Anonymous")
 
+    username = string_sanitizer(username)
+
     asyncio.run(chat_sender(host, port, uid, username, message))
