@@ -3,6 +3,7 @@ import asyncio
 import os
 
 from dotenv import load_dotenv
+from loguru import logger
 
 from loginer import authenticate
 from helpers import string_sanitizer
@@ -17,6 +18,7 @@ async def chat_sender(host, port, account_hash, nickname, message=None):
         sanitized_message = string_sanitizer(message)
 
     writer.write(f"{sanitized_message}\n\n".encode())
+    logger.debug(f"Sent message: {sanitized_message}")
     writer.close()
 
 
