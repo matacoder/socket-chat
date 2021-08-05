@@ -15,6 +15,6 @@ async def chat_client_reader(host_, port_, history_):
             message_with_timestamp = f"{timestamp} {message.decode()}"
             async with aiofiles.open(history_, "a") as chat_logs:
                 await chat_logs.write(message_with_timestamp)
-            print(message_with_timestamp)
+            print(message_with_timestamp.rstrip())
     except KeyboardInterrupt:
         writer.close()
