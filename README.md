@@ -16,11 +16,11 @@ nc minechat.dvmn.org 5000
 Read the chat:
 
 ```bash
-pyhton main.py
+python main.py
 ```
 
 Send message to chat:
 
 ```bash
-pyhton sender.py "This is message"
+python sender.py "This is message"
 ```
