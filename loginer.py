@@ -21,13 +21,13 @@ async def register(host_, port_, name):
     """Log in user, return login info dict."""
     reader, writer = await asyncio.open_connection(host_, port_)
 
-    await reader.readline()
-    # "Hello %username%! Enter your personal hash or leave it empty to create new account."
+    welcome_message = await reader.readline()
+    logger.debug(welcome_message.decode())
 
     writer.write(f"\n".encode())
 
-    await reader.readline()
-    # "Enter preferred nickname below:"
+    nickname_query = await reader.readline()
+    logger.debug(nickname_query.decode())
 
     writer.write(f"{name}\n".encode())
     logged_user_json = await reader.readline()
@@ -44,17 +44,15 @@ async def login(host_, port_, account_hash, name):
 
     reader, writer = await asyncio.open_connection(host_, port_)
     welcome_message = await reader.readline()
-    # Hello %username%! Enter your personal hash or leave it empty to create new account.
     logger.debug(welcome_message.decode())
 
     writer.write(f"{account_hash}\n".encode())
-    logged_user = await reader.readline()  # Return JSON NoneType if fails
+    logged_user = await reader.readline()
+
     logger.debug(f"Attempt to log in with token returned: {logged_user}")
     if not json.loads(logged_user.decode()):
         writer.close()
-        logger.debug("User token is not valid. Registering new one.")
-        account_hash = await register(host_, port_, name=name)
-        writer = await login(host_, port_, account_hash, name)
+        raise RuntimeError("Token not valid.")
     return writer
 
 
