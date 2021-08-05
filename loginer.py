@@ -5,7 +5,8 @@ import aiofiles
 from loguru import logger
 
 
-async def save_hash_to_dotenv(logged_user):
+async def save_user_to_dotenv(logged_user):
+    """Save created user to .env file."""
     account_hash_env = f"uid={logged_user['account_hash']}\n"
     username_env = f"username={logged_user['nickname']}"
     async with aiofiles.open(".env", "w") as dotenv:
@@ -17,9 +18,9 @@ async def save_hash_to_dotenv(logged_user):
         )
 
 
-async def register(host_, port_, name):
+async def register(host, port, name):
     """Log in user, return login info dict."""
-    reader, writer = await asyncio.open_connection(host_, port_)
+    reader, writer = await asyncio.open_connection(host, port)
 
     welcome_message = await reader.readline()
     logger.debug(welcome_message.decode())
@@ -33,33 +34,32 @@ async def register(host_, port_, name):
     logged_user_json = await reader.readline()
     logged_user = json.loads(logged_user_json.decode())
     logger.debug(f"Created a new user: {logged_user}")
-    await save_hash_to_dotenv(logged_user)
+    await save_user_to_dotenv(logged_user)
     writer.close()
 
     return logged_user["account_hash"]
 
 
-async def login(host_, port_, account_hash, name):
+async def login(host, port, account_hash):
     """Log in user."""
-
-    reader, writer = await asyncio.open_connection(host_, port_)
+    reader, writer = await asyncio.open_connection(host, port)
     welcome_message = await reader.readline()
     logger.debug(welcome_message.decode())
 
     writer.write(f"{account_hash}\n".encode())
     logged_user = await reader.readline()
 
-    logger.debug(f"Attempt to log in with token returned: {logged_user}")
+    logger.debug(f"Attempt to log in with token returned: {logged_user.decode()}")
     if not json.loads(logged_user.decode()):
         writer.close()
         raise RuntimeError("Token not valid.")
     return writer
 
 
-async def authenticate(host_, port_, account_hash=None, name="James T. Kirk"):
+async def authenticate(host, port, account_hash, name):
     """Login if possible or register new user."""
     if not account_hash:
-        account_hash = await register(host_, port_, name=name)
+        account_hash = await register(host, port, name)
 
-    writer = await login(host_, port_, account_hash, name=name)
+    writer = await login(host, port, account_hash)
     return writer
