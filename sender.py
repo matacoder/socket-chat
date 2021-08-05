@@ -8,37 +8,32 @@ from loginer import authenticate
 from helpers import string_sanitizer
 
 
-async def chat_sender(host_, port_, uid_, username_, message_=None):
+async def chat_sender(host, port, account_hash, nickname, message=None):
     """Send message to chat after login or registration."""
-    writer = await authenticate(host_, port_, uid_, username_)
-    if not message_:
-        message_ = "Test message"
+    writer = await authenticate(host, port, account_hash, nickname)
+    if not message:
+        sanitized_message = "Test message"
     else:
-        message_ = string_sanitizer(message_)
+        sanitized_message = string_sanitizer(message)
 
-    writer.write(f"{message_}\n\n".encode())
+    writer.write(f"{sanitized_message}\n\n".encode())
     writer.close()
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Send message to private chat.")
 
-    parser.add_argument("message", help="Specify message you want to send")
-    parser.add_argument("-u", "--username", help="Specify username you want to use.")
-    parser.add_argument("--host", help="Specify host to connect.")
-    parser.add_argument("-p", "--port", help="Specify port to connect.")
+    parser.add_argument("message", help="Specify message you want to send.")
+    parser.add_argument("-u", "--username", help="Specify username you want to use.", default="Anonymous")
+    parser.add_argument("--host", help="Specify host to connect.", default="minechat.dvmn.org")
+    parser.add_argument("-p", "--port", help="Specify port to connect.", default=5050)
 
     args = parser.parse_args()
-    host = args.host if args.host else "minechat.dvmn.org"
-    port = args.port if args.port else 5050
-    username = args.username if args.username else None
-    message = args.message
 
     load_dotenv()
-    uid = os.getenv("uid", None)
-    if not username:
-        username = os.getenv("username", "Anonymous")
+    saved_account_hash = os.getenv("account_hash", None)
+    saved_nickname = os.getenv("nickname", args.username)
 
-    username = string_sanitizer(username)
+    sanitized_nickname = string_sanitizer(saved_nickname)
 
-    asyncio.run(chat_sender(host, port, uid, username, message))
+    asyncio.run(chat_sender(args.host, args.port, saved_account_hash, sanitized_nickname, args.message))
