@@ -26,11 +26,14 @@ async def register(host, port, name):
     logger.debug(welcome_message.decode())
 
     writer.write(f"\n".encode())
+    await writer.drain()
 
     nickname_query = await reader.readline()
     logger.debug(nickname_query.decode())
 
     writer.write(f"{name}\n".encode())
+    await writer.drain()
+
     logged_user_json = await reader.readline()
     logged_user = json.loads(logged_user_json.decode())
     logger.debug(f"Created a new user: {logged_user}")
@@ -47,6 +50,8 @@ async def login(host, port, account_hash):
     logger.debug(welcome_message.decode())
 
     writer.write(f"{account_hash}\n".encode())
+    await writer.drain()
+
     logged_user = await reader.readline()
 
     logger.debug(f"Attempt to log in with token returned: {logged_user.decode()}")
