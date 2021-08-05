@@ -9,13 +9,10 @@ from loginer import authenticate
 from helpers import string_sanitizer
 
 
-async def chat_sender(host, port, account_hash, nickname, message=None):
+async def chat_sender(host, port, account_hash, nickname, message):
     """Send message to chat after login or registration."""
     writer = await authenticate(host, port, account_hash, nickname)
-    if not message:
-        sanitized_message = "Test message"
-    else:
-        sanitized_message = string_sanitizer(message)
+    sanitized_message = string_sanitizer(message)
 
     writer.write(f"{sanitized_message}\n\n".encode())
     logger.debug(f"Sent message: {sanitized_message}")
