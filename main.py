@@ -17,4 +17,7 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    asyncio.run(chat_client_reader(args.host, args.port, args.logfile))
+    try:
+        asyncio.run(chat_client_reader(args.host, args.port, args.logfile))
+    except KeyboardInterrupt:
+        pass
