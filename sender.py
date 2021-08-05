@@ -23,8 +23,15 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Send message to private chat.")
 
     parser.add_argument("message", help="Specify message you want to send.")
-    parser.add_argument("-u", "--username", help="Specify username you want to use.", default="Anonymous")
-    parser.add_argument("--host", help="Specify host to connect.", default="minechat.dvmn.org")
+    parser.add_argument(
+        "-u",
+        "--username",
+        help="Specify username you want to use.",
+        default="Anonymous",
+    )
+    parser.add_argument(
+        "--host", help="Specify host to connect.", default="minechat.dvmn.org"
+    )
     parser.add_argument("-p", "--port", help="Specify port to connect.", default=5050)
 
     args = parser.parse_args()
@@ -35,4 +42,8 @@ if __name__ == "__main__":
 
     sanitized_nickname = string_sanitizer(saved_nickname)
 
-    asyncio.run(chat_sender(args.host, args.port, saved_account_hash, sanitized_nickname, args.message))
+    asyncio.run(
+        chat_sender(
+            args.host, args.port, saved_account_hash, sanitized_nickname, args.message
+        )
+    )
