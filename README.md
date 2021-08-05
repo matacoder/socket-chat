@@ -34,6 +34,14 @@ python -m main
 
 ## Send message to chat:
 
+### Environment variables
+
+App supports `.env` file with `nickname` you want to use and `account_hash` to log in.
+
+You can specify it directly using `export nickname=NickName` bash command or using arguments.
+
+### Send message using:
+
 ```bash
 python -m sender "This is message"
 ```
