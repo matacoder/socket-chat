@@ -14,7 +14,7 @@ async def chat_sender(host_, port_, uid_, username_, message_=None):
     if not message_:
         message_ = "Test message"
     else:
-        message_ = await string_sanitizer(message_)
+        message_ = string_sanitizer(message_)
 
     writer.write(f"{message_}\n\n".encode())
     writer.close()
