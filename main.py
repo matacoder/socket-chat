@@ -2,7 +2,21 @@ import asyncio
 
 import argparse
 
+import gui
 from reader import chat_client_reader
+
+
+async def main():
+    messages_queue = asyncio.Queue()
+    sending_queue = asyncio.Queue()
+    status_updates_queue = asyncio.Queue()
+
+    coroutines = [
+        gui.draw(messages_queue, sending_queue, status_updates_queue),
+        chat_client_reader(args.host, args.port, args.logfile),
+    ]
+
+    await asyncio.gather(*coroutines, return_exceptions=True)
 
 
 if __name__ == "__main__":
@@ -18,6 +32,6 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     try:
-        asyncio.run(chat_client_reader(args.host, args.port, args.logfile))
+        asyncio.run(main())
     except KeyboardInterrupt:
         pass
