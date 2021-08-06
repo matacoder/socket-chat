@@ -16,7 +16,9 @@ SETTINGS = {
 }
 
 
-async def chat_sender(host, port, account_hash, nickname, message, status_updates_queue=None):
+async def chat_sender(
+    host, port, account_hash, nickname, message, status_updates_queue=None
+):
     """Send message to chat after login or registration."""
     if status_updates_queue:
         status_updates_queue.put_nowait(gui.SendingConnectionStateChanged.INITIATED)
@@ -41,7 +43,12 @@ async def send_from_gui(sending_queue, status_updates_queue):
         message = await sending_queue.get()
         if message:
             await chat_sender(
-                SETTINGS["host"], SETTINGS["port"], account_hash, nickname, message, status_updates_queue
+                SETTINGS["host"],
+                SETTINGS["port"],
+                account_hash,
+                nickname,
+                message,
+                status_updates_queue,
             )
 
 

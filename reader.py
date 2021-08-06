@@ -6,7 +6,9 @@ import aiofiles
 import gui
 
 
-async def chat_client_reader(host, port, log_file_name, messages_queue, status_updates_queue):
+async def chat_client_reader(
+    host, port, log_file_name, messages_queue, status_updates_queue
+):
     """Stream messages from chat to stdout."""
     status_updates_queue.put_nowait(gui.ReadConnectionStateChanged.INITIATED)
     reader, writer = await asyncio.open_connection(host, port)
