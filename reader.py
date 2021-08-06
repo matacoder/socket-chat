@@ -3,10 +3,14 @@ import datetime
 
 import aiofiles
 
+import gui
 
-async def chat_client_reader(host, port, log_file_name, messages_queue):
+
+async def chat_client_reader(host, port, log_file_name, messages_queue, status_updates_queue):
     """Stream messages from chat to stdout."""
+    status_updates_queue.put_nowait(gui.ReadConnectionStateChanged.INITIATED)
     reader, writer = await asyncio.open_connection(host, port)
+    status_updates_queue.put_nowait(gui.ReadConnectionStateChanged.ESTABLISHED)
 
     try:
         while True:
@@ -21,3 +25,4 @@ async def chat_client_reader(host, port, log_file_name, messages_queue):
             messages_queue.put_nowait(message_with_datetime.rstrip())
     finally:
         writer.close()
+        status_updates_queue.put_nowait(gui.ReadConnectionStateChanged.CLOSED)
