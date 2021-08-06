@@ -5,6 +5,7 @@ import os
 from dotenv import load_dotenv
 from loguru import logger
 
+import gui
 from loginer import authenticate
 from helpers import sanitize_string
 
@@ -15,24 +16,32 @@ SETTINGS = {
 }
 
 
-async def chat_sender(host, port, account_hash, nickname, message):
+async def chat_sender(host, port, account_hash, nickname, message, status_updates_queue=None):
     """Send message to chat after login or registration."""
+    if status_updates_queue:
+        status_updates_queue.put_nowait(gui.SendingConnectionStateChanged.INITIATED)
     writer = await authenticate(host, port, account_hash, nickname)
+    if status_updates_queue:
+        status_updates_queue.put_nowait(gui.SendingConnectionStateChanged.ESTABLISHED)
     sanitized_message = sanitize_string(message)
 
     writer.write(f"{sanitized_message}\n\n".encode())
     logger.debug(f"Sent message: {sanitized_message}")
     writer.close()
+    if status_updates_queue:
+        status_updates_queue.put_nowait(gui.SendingConnectionStateChanged.CLOSED)
 
 
-async def send_from_gui(sending_queue):
+async def send_from_gui(sending_queue, status_updates_queue):
     """Send message from GUI."""
     account_hash, nickname = load_from_dotenv()
+    event = gui.NicknameReceived(nickname)
+    status_updates_queue.put_nowait(event)
     while True:
         message = await sending_queue.get()
         if message:
             await chat_sender(
-                SETTINGS["host"], SETTINGS["port"], account_hash, nickname, message
+                SETTINGS["host"], SETTINGS["port"], account_hash, nickname, message, status_updates_queue
             )
 
 

@@ -15,7 +15,7 @@ async def main():
     coroutines = [
         gui.draw(messages_queue, sending_queue, status_updates_queue),
         chat_client_reader(args.host, args.port, args.logfile, messages_queue, status_updates_queue),
-        send_from_gui(sending_queue),
+        send_from_gui(sending_queue, status_updates_queue),
     ]
 
     await asyncio.gather(*coroutines, return_exceptions=True)
