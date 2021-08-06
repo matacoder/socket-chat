@@ -26,6 +26,7 @@ async def chat_sender(host, port, account_hash, nickname, message):
 
 
 async def send_from_gui(sending_queue):
+    """Send message from GUI."""
     account_hash, nickname = load_from_dotenv()
     while True:
         message = await sending_queue.get()
@@ -36,6 +37,7 @@ async def send_from_gui(sending_queue):
 
 
 def load_from_dotenv():
+    """Load saved nickname and hash to log in."""
     load_dotenv()
     return os.getenv("account_hash", None), os.getenv("nickname", None)
 
