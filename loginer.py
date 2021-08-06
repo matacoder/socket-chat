@@ -4,6 +4,8 @@ import json
 import aiofiles
 from loguru import logger
 
+from helpers import TokenNotValidError
+
 
 async def save_user_to_dotenv(logged_user):
     """Save created user to .env file."""
@@ -57,7 +59,9 @@ async def login(host, port, account_hash):
     logger.debug(f"Attempt to log in with token returned: {logged_user.decode()}")
     if not json.loads(logged_user.decode()):
         writer.close()
-        raise ValueError("Token not valid.")
+        raise TokenNotValidError(
+            "Token not valid. Check it or register again by deleting current token from .env file."
+        )
     return writer
 
 
