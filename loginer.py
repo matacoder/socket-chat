@@ -33,6 +33,8 @@ async def register(host, port, name):
     nickname_query = await reader.readline()
     logger.debug(nickname_query.decode())
 
+    if not name:
+        name = "Anonymous"
     writer.write(f"{name}\n".encode())
     await writer.drain()
 
