@@ -6,13 +6,13 @@ from dotenv import load_dotenv
 from loguru import logger
 
 from loginer import authenticate
-from helpers import string_sanitizer
+from helpers import sanitize_string
 
 
 async def chat_sender(host, port, account_hash, nickname, message):
     """Send message to chat after login or registration."""
     writer = await authenticate(host, port, account_hash, nickname)
-    sanitized_message = string_sanitizer(message)
+    sanitized_message = sanitize_string(message)
 
     writer.write(f"{sanitized_message}\n\n".encode())
     logger.debug(f"Sent message: {sanitized_message}")
@@ -40,7 +40,7 @@ if __name__ == "__main__":
     saved_account_hash = os.getenv("account_hash", None)
     saved_nickname = os.getenv("nickname", args.username)
 
-    sanitized_nickname = string_sanitizer(saved_nickname)
+    sanitized_nickname = sanitize_string(saved_nickname)
 
     asyncio.run(
         chat_sender(

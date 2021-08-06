@@ -57,7 +57,7 @@ async def login(host, port, account_hash):
     logger.debug(f"Attempt to log in with token returned: {logged_user.decode()}")
     if not json.loads(logged_user.decode()):
         writer.close()
-        raise RuntimeError("Token not valid.")
+        raise ValueError("Token not valid.")
     return writer
 
 
