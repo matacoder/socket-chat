@@ -15,6 +15,14 @@ async def chat_client_reader(
     status_updates_queue.put_nowait(gui.ReadConnectionStateChanged.ESTABLISHED)
 
     try:
+        async with aiofiles.open(log_file_name, "r") as chat_logs:
+            logs = await chat_logs.readlines()
+            for log in logs:
+                messages_queue.put_nowait(log.rstrip())
+    except FileNotFoundError:
+        messages_queue.put_nowait("File with messages history not found.")
+
+    try:
         while True:
             message = await reader.readline()
             current_formatted_datetime = datetime.datetime.now().strftime(
