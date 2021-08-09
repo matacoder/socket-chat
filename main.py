@@ -4,7 +4,7 @@ import argparse
 
 import gui
 from reader import chat_client_reader
-from sender import send_from_gui
+from sender import send_from_gui, sustain_connection, load_from_dotenv
 
 
 async def main():

@@ -9,29 +9,57 @@ import gui
 from loginer import authenticate
 from helpers import sanitize_string
 
-
 SETTINGS = {
     "host": "minechat.dvmn.org",
     "port": 5050,
 }
+
+writer = ""
+
+
+async def create_connection(host, port, account_hash, nickname, status_updates_queue):
+    if status_updates_queue:
+        status_updates_queue.put_nowait(gui.SendingConnectionStateChanged.INITIATED)
+    global writer
+    writer = await authenticate(host, port, account_hash, nickname)
+    if status_updates_queue:
+        status_updates_queue.put_nowait(gui.SendingConnectionStateChanged.ESTABLISHED)
+    return writer
+
+
+async def sustain_connection(host, port, account_hash, nickname, status_updates_queue):
+    global writer
+    while True:
+        if not writer:
+            writer = await create_connection(
+                host, port, account_hash, nickname, status_updates_queue
+            )
+
+        try:
+            await writer.write()
+            logger.debug("Pinging")
+        finally:
+            writer.close()
+            if status_updates_queue:
+                status_updates_queue.put_nowait(
+                    gui.SendingConnectionStateChanged.CLOSED
+                )
 
 
 async def chat_sender(
     host, port, account_hash, nickname, message, status_updates_queue=None
 ):
     """Send message to chat after login or registration."""
-    if status_updates_queue:
-        status_updates_queue.put_nowait(gui.SendingConnectionStateChanged.INITIATED)
-    writer = await authenticate(host, port, account_hash, nickname)
-    if status_updates_queue:
-        status_updates_queue.put_nowait(gui.SendingConnectionStateChanged.ESTABLISHED)
+    global writer
+    if not writer:
+        writer = await create_connection(
+            host, port, account_hash, nickname, status_updates_queue
+        )
+
     sanitized_message = sanitize_string(message)
 
     writer.write(f"{sanitized_message}\n\n".encode())
     logger.debug(f"Sent message: {sanitized_message}")
-    writer.close()
-    if status_updates_queue:
-        status_updates_queue.put_nowait(gui.SendingConnectionStateChanged.CLOSED)
 
 
 async def send_from_gui(sending_queue, status_updates_queue):
