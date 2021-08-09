@@ -68,9 +68,11 @@ async def login(host, port, account_hash):
             "Token not valid.",
             "Check it or register again by deleting current token from .env file.",
         )
+        exit()
         raise TokenNotValidError(
             "Token not valid. Check it or register again by deleting current token from .env file."
         )
+
     return writer
 
 
