@@ -27,7 +27,7 @@ async def create_connection(host, port, account_hash, nickname, status_updates_q
     return writer
 
 
-async def sustain_connection(host, port, account_hash, nickname, status_updates_queue):
+async def handle_connection(host, port, account_hash, nickname, status_updates_queue):
     global writer
     while True:
         if not writer:
@@ -51,6 +51,7 @@ async def chat_sender(
 ):
     """Send message to chat after login or registration."""
     global writer
+    logger.debug(writer)
     if not writer:
         writer = await create_connection(
             host, port, account_hash, nickname, status_updates_queue

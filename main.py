@@ -2,22 +2,41 @@ import asyncio
 
 import argparse
 
+from async_timeout import timeout
+from loguru import logger
+
 import gui
 from reader import chat_client_reader
-from sender import send_from_gui, sustain_connection, load_from_dotenv
+from sender import send_from_gui
+
+
+async def handle_connection(watchdog_queue):
+    while True:
+        try:
+            async with timeout(5) as cm:
+                logger.debug("HANDLE")
+                message = await watchdog_queue.get()
+                logger.debug(message)
+            if cm.expired:
+                break
+        except asyncio.TimeoutError:
+            logger.debug("Timeout")
+            break
 
 
 async def main():
     messages_queue = asyncio.Queue()
     sending_queue = asyncio.Queue()
     status_updates_queue = asyncio.Queue()
+    watchdog_queue = asyncio.Queue()
 
     coroutines = [
         gui.draw(messages_queue, sending_queue, status_updates_queue),
         chat_client_reader(
-            args.host, args.port, args.logfile, messages_queue, status_updates_queue
+            args.host, args.port, args.logfile, messages_queue, status_updates_queue, watchdog_queue,
         ),
         send_from_gui(sending_queue, status_updates_queue),
+        handle_connection(watchdog_queue),
     ]
 
     await asyncio.gather(*coroutines, return_exceptions=True)
