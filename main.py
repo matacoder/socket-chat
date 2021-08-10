@@ -1,6 +1,7 @@
 import asyncio
 
 import argparse
+import datetime
 
 from async_timeout import timeout
 from loguru import logger
@@ -14,9 +15,8 @@ async def handle_connection(watchdog_queue):
     while True:
         try:
             async with timeout(5) as cm:
-                logger.debug("HANDLE")
                 message = await watchdog_queue.get()
-                logger.debug(message)
+                logger.debug(f"[{datetime.datetime.now().isoformat()}] {message}")
             if cm.expired:
                 break
         except asyncio.TimeoutError:
@@ -35,7 +35,7 @@ async def main():
         chat_client_reader(
             args.host, args.port, args.logfile, messages_queue, status_updates_queue, watchdog_queue,
         ),
-        send_from_gui(sending_queue, status_updates_queue),
+        send_from_gui(sending_queue, status_updates_queue, watchdog_queue),
         handle_connection(watchdog_queue),
     ]
 

@@ -26,7 +26,7 @@ async def chat_client_reader(
         while True:
             message = await reader.readline()
             # if message:
-            watchdog_queue.put_nowait(f"[{datetime.datetime.now().isoformat()}] Message have been read from server.")
+            watchdog_queue.put_nowait("Message have been read from server.")
             current_formatted_datetime = datetime.datetime.now().strftime(
                 "[%Y.%m.%d %H:%M:%S]"
             )

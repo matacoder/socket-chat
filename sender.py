@@ -47,11 +47,10 @@ async def handle_connection(host, port, account_hash, nickname, status_updates_q
 
 
 async def chat_sender(
-    host, port, account_hash, nickname, message, status_updates_queue=None
+    host, port, account_hash, nickname, message, status_updates_queue=None, watchdog_queue=None
 ):
     """Send message to chat after login or registration."""
     global writer
-    logger.debug(writer)
     if not writer:
         writer = await create_connection(
             host, port, account_hash, nickname, status_updates_queue
@@ -60,10 +59,11 @@ async def chat_sender(
     sanitized_message = sanitize_string(message)
 
     writer.write(f"{sanitized_message}\n\n".encode())
-    logger.debug(f"Sent message: {sanitized_message}")
+    # logger.debug(f"Sent message: {sanitized_message}")
+    watchdog_queue.put_nowait("Message sent")
 
 
-async def send_from_gui(sending_queue, status_updates_queue):
+async def send_from_gui(sending_queue, status_updates_queue, watchdog_queue):
     """Send message from GUI."""
     account_hash, nickname = load_from_dotenv()
     event = gui.NicknameReceived(nickname)
@@ -78,6 +78,7 @@ async def send_from_gui(sending_queue, status_updates_queue):
                 nickname,
                 message,
                 status_updates_queue,
+                watchdog_queue,
             )
 
 
