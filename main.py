@@ -47,7 +47,10 @@ async def main():
                         watchdog_queue,
                     )
                     tg.start_soon(
-                        send_from_gui, sending_queue, status_updates_queue, watchdog_queue
+                        send_from_gui,
+                        sending_queue,
+                        status_updates_queue,
+                        watchdog_queue,
                     )
                     tg.start_soon(watch_for_connection, watchdog_queue)
 

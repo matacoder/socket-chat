@@ -19,7 +19,9 @@ async def create_connection(status_updates_queue, watchdog_queue):
     account_hash, nickname = load_from_dotenv()
     status_updates_queue.put_nowait(gui.SendingConnectionStateChanged.INITIATED)
     global writer
-    writer = await authenticate(SETTINGS["host"], SETTINGS["port"], account_hash, nickname, watchdog_queue)
+    writer = await authenticate(
+        SETTINGS["host"], SETTINGS["port"], account_hash, nickname, watchdog_queue
+    )
     status_updates_queue.put_nowait(gui.SendingConnectionStateChanged.ESTABLISHED)
     watchdog_queue.put_nowait("Sending connection established.")
     return writer
@@ -29,9 +31,7 @@ async def chat_sender(message, status_updates_queue, watchdog_queue):
     """Send message to chat after login or registration."""
     global writer
     if not writer:
-        writer = await create_connection(
-            status_updates_queue, watchdog_queue
-        )
+        writer = await create_connection(status_updates_queue, watchdog_queue)
 
     sanitized_message = sanitize_string(message)
 

@@ -2,6 +2,7 @@ import asyncio
 import datetime
 
 import aiofiles
+from loguru import logger
 
 import gui
 
@@ -22,8 +23,8 @@ async def chat_client_reader(
     except FileNotFoundError:
         messages_queue.put_nowait("File with messages history not found.")
 
-    try:
-        while True:
+    while True:
+        try:
             message = await reader.readline()
             watchdog_queue.put_nowait("Message have been read from server.")
             current_formatted_datetime = datetime.datetime.now().strftime(
@@ -33,6 +34,8 @@ async def chat_client_reader(
             async with aiofiles.open(log_file_name, "a") as chat_logs:
                 await chat_logs.write(message_with_datetime)
             messages_queue.put_nowait(message_with_datetime.rstrip())
-    finally:
-        writer.close()
-        status_updates_queue.put_nowait(gui.ReadConnectionStateChanged.CLOSED)
+        except asyncio.CancelledError:
+            writer.close()
+            logger.debug("Close reader")
+            status_updates_queue.put_nowait(gui.ReadConnectionStateChanged.CLOSED)
+            break
