@@ -8,7 +8,7 @@ from loguru import logger
 
 import gui
 from reader import chat_client_reader
-from sender import send_from_gui, create_sender_connection
+from sender import send_from_gui, initiate_connection_on_app_start
 
 
 async def handle_connection(watchdog_queue):
@@ -42,7 +42,7 @@ async def main():
         ),
         send_from_gui(sending_queue, status_updates_queue, watchdog_queue),
         handle_connection(watchdog_queue),
-        create_sender_connection(status_updates_queue, watchdog_queue),
+        initiate_connection_on_app_start(status_updates_queue, watchdog_queue),
     ]
 
     await asyncio.gather(*coroutines, return_exceptions=True)

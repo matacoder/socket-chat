@@ -1,9 +1,8 @@
-import argparse
-import asyncio
+
 import os
 
 from dotenv import load_dotenv
-from loguru import logger
+
 
 import gui
 from loginer import authenticate
@@ -29,7 +28,7 @@ async def create_connection(
     return writer
 
 
-async def create_sender_connection(status_updates_queue, watchdog_queue):
+async def initiate_connection_on_app_start(status_updates_queue, watchdog_queue):
     global writer
     account_hash, nickname = load_from_dotenv()
     writer = await create_connection(
@@ -40,16 +39,18 @@ async def create_sender_connection(status_updates_queue, watchdog_queue):
         status_updates_queue,
         watchdog_queue,
     )
+    return writer
 
 
-async def chat_sender(message, watchdog_queue):
+async def chat_sender(message, status_updates_queue, watchdog_queue):
     """Send message to chat after login or registration."""
     global writer
+    if not writer:
+        writer = await initiate_connection_on_app_start(status_updates_queue, watchdog_queue)
 
     sanitized_message = sanitize_string(message)
 
     writer.write(f"{sanitized_message}\n\n".encode())
-    # logger.debug(f"Sent message: {sanitized_message}")
     watchdog_queue.put_nowait("Message sent")
 
 
@@ -63,6 +64,7 @@ async def send_from_gui(sending_queue, status_updates_queue, watchdog_queue):
         if message:
             await chat_sender(
                 message,
+                status_updates_queue,
                 watchdog_queue,
             )
 
@@ -71,36 +73,3 @@ def load_from_dotenv():
     """Load saved nickname and hash to log in."""
     load_dotenv()
     return os.getenv("account_hash", None), os.getenv("nickname", None)
-
-
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Send message to private chat.")
-
-    parser.add_argument("message", help="Specify message you want to send.")
-    parser.add_argument(
-        "-u",
-        "--username",
-        help="Specify username you want to use.",
-        default="Anonymous",
-    )
-    parser.add_argument(
-        "--host", help="Specify host to connect.", default=SETTINGS["host"]
-    )
-    parser.add_argument(
-        "-p", "--port", help="Specify port to connect.", default=SETTINGS["port"]
-    )
-
-    args = parser.parse_args()
-
-    load_dotenv()
-    saved_account_hash, saved_nickname = load_from_dotenv()
-    if not saved_nickname:
-        saved_nickname = args.username
-
-    sanitized_nickname = sanitize_string(saved_nickname)
-
-    asyncio.run(
-        chat_sender(
-            args.host, args.port, saved_account_hash, sanitized_nickname, args.message
-        )
-    )
