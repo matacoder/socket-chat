@@ -2,7 +2,6 @@ import asyncio
 import json
 
 import aiofiles
-from loguru import logger
 
 from helpers import TokenNotValidError
 
@@ -22,18 +21,18 @@ async def save_user_to_dotenv(logged_user):
         )
 
 
-async def register(host, port, name):
+async def register(host, port, name, watchdog_queue):
     """Log in user, return login info dict."""
     reader, writer = await asyncio.open_connection(host, port)
 
     welcome_message = await reader.readline()
-    logger.debug(welcome_message.decode())
+    watchdog_queue.put_nowait(welcome_message.decode())
 
     writer.write(f"\n".encode())
     await writer.drain()
 
     nickname_query = await reader.readline()
-    logger.debug(nickname_query.decode())
+    watchdog_queue.put_nowait(nickname_query.decode())
 
     if not name:
         name = "Anonymous"
@@ -42,25 +41,25 @@ async def register(host, port, name):
 
     logged_user_json = await reader.readline()
     logged_user = json.loads(logged_user_json.decode())
-    logger.debug(f"Created a new user: {logged_user}")
+    watchdog_queue.put_nowait(f"Created a new user: {logged_user}")
     await save_user_to_dotenv(logged_user)
     writer.close()
 
     return logged_user["account_hash"]
 
 
-async def login(host, port, account_hash):
+async def login(host, port, account_hash, watchdog_queue):
     """Log in user."""
     reader, writer = await asyncio.open_connection(host, port)
     welcome_message = await reader.readline()
-    logger.debug(welcome_message.decode())
+    watchdog_queue.put_nowait(welcome_message.decode())
 
     writer.write(f"{account_hash}\n".encode())
     await writer.drain()
 
     logged_user = await reader.readline()
 
-    logger.debug(f"Attempt to log in with token returned: {logged_user.decode()}")
+    watchdog_queue.put_nowait(f"Attempt to log in with token returned: {logged_user.decode()}")
     if not json.loads(logged_user.decode()):
         writer.close()
 
@@ -76,10 +75,10 @@ async def login(host, port, account_hash):
     return writer
 
 
-async def authenticate(host, port, account_hash, name):
+async def authenticate(host, port, account_hash, name, watchdog_queue):
     """Login if possible or register new user."""
     if not account_hash:
-        account_hash = await register(host, port, name)
+        account_hash = await register(host, port, name, watchdog_queue)
 
-    writer = await login(host, port, account_hash)
+    writer = await login(host, port, account_hash, watchdog_queue)
     return writer

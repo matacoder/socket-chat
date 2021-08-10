@@ -22,7 +22,7 @@ async def create_connection(
     if status_updates_queue:
         status_updates_queue.put_nowait(gui.SendingConnectionStateChanged.INITIATED)
     global writer
-    writer = await authenticate(host, port, account_hash, nickname)
+    writer = await authenticate(host, port, account_hash, nickname, watchdog_queue)
     status_updates_queue.put_nowait(gui.SendingConnectionStateChanged.ESTABLISHED)
     watchdog_queue.put_nowait("Sending connection established.")
     return writer
