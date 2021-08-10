@@ -2,6 +2,7 @@ import asyncio
 import json
 
 import aiofiles
+from loguru import logger
 
 from helpers import TokenNotValidError
 
@@ -23,7 +24,11 @@ async def save_user_to_dotenv(logged_user):
 
 async def register(host, port, name, watchdog_queue):
     """Log in user, return login info dict."""
-    reader, writer = await asyncio.open_connection(host, port)
+    try:
+        reader, writer = await asyncio.open_connection(host, port)
+    except ConnectionError:
+        logger.debug("Register failed")
+        raise
 
     welcome_message = await reader.readline()
     watchdog_queue.put_nowait(welcome_message.decode())
@@ -50,7 +55,11 @@ async def register(host, port, name, watchdog_queue):
 
 async def login(host, port, account_hash, watchdog_queue):
     """Log in user."""
-    reader, writer = await asyncio.open_connection(host, port)
+    try:
+        reader, writer = await asyncio.open_connection(host, port)
+    except ConnectionError:
+        logger.debug("Login failed")
+        raise
     welcome_message = await reader.readline()
     watchdog_queue.put_nowait(welcome_message.decode())
 
