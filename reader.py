@@ -2,6 +2,7 @@ import asyncio
 import datetime
 
 import aiofiles
+from async_timeout import timeout
 from loguru import logger
 
 import gui
@@ -12,8 +13,13 @@ async def chat_client_reader(
 ):
     """Stream messages from chat to stdout."""
     status_updates_queue.put_nowait(gui.ReadConnectionStateChanged.INITIATED)
-    reader, writer = await asyncio.open_connection(host, port)
-    status_updates_queue.put_nowait(gui.ReadConnectionStateChanged.ESTABLISHED)
+    try:
+        async with timeout(2):
+            reader, writer = await asyncio.open_connection(host, port)
+            status_updates_queue.put_nowait(gui.ReadConnectionStateChanged.ESTABLISHED)
+    except asyncio.TimeoutError:
+        status_updates_queue.put_nowait(gui.ReadConnectionStateChanged.CLOSED)
+        raise
 
     try:
         async with aiofiles.open(log_file_name, "r") as chat_logs:

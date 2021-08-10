@@ -15,7 +15,7 @@ from anyio import sleep, create_task_group, run, CancelScope
 async def watch_for_connection(watchdog_queue):
     while True:
         try:
-            async with timeout(5) as cm:
+            async with timeout(5):
                 message = await watchdog_queue.get()
                 logger.debug(f"[{datetime.datetime.now().isoformat()}] {message}")
         except asyncio.TimeoutError:

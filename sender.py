@@ -33,9 +33,7 @@ async def send_from_gui(sending_queue, status_updates_queue, watchdog_queue):
     account_hash, nickname = load_from_dotenv()
     event = gui.NicknameReceived(nickname)
     status_updates_queue.put_nowait(event)
-    global writer
-    if not writer:
-        writer = await create_connection(status_updates_queue, watchdog_queue)
+
     while True:
         try:
             message = await sending_queue.get()
