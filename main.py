@@ -8,11 +8,8 @@ from loguru import logger
 
 import gui
 from reader import chat_client_reader
-from sender import send_from_gui, initiate_connection_on_app_start
+from sender import send_from_gui, create_connection
 from anyio import sleep, create_task_group, run, CancelScope
-
-
-is_app_online = False
 
 
 async def watch_for_connection(watchdog_queue):
@@ -24,32 +21,7 @@ async def watch_for_connection(watchdog_queue):
         except asyncio.TimeoutError:
             logger.debug("Timeout")
             global is_app_online
-            is_app_online = False
             raise ConnectionError
-
-
-# async def main2():
-#     messages_queue = asyncio.Queue()
-#     sending_queue = asyncio.Queue()
-#     status_updates_queue = asyncio.Queue()
-#     watchdog_queue = asyncio.Queue()
-#
-#     coroutines = [
-#         gui.draw(messages_queue, sending_queue, status_updates_queue),
-#         chat_client_reader(
-#             args.host,
-#             args.port,
-#             args.logfile,
-#             messages_queue,
-#             status_updates_queue,
-#             watchdog_queue,
-#         ),
-#         send_from_gui(sending_queue, status_updates_queue, watchdog_queue),
-#         watch_for_connection(watchdog_queue),
-#         initiate_connection_on_app_start(status_updates_queue, watchdog_queue),
-#     ]
-#
-#     await asyncio.gather(*coroutines, return_exceptions=True)
 
 
 async def main():
@@ -57,12 +29,13 @@ async def main():
     sending_queue = asyncio.Queue()
     status_updates_queue = asyncio.Queue()
     watchdog_queue = asyncio.Queue()
+    asyncio.create_task(gui.draw(messages_queue, sending_queue, status_updates_queue))
     while True:
         try:
             async with create_task_group() as tg:
                 with CancelScope() as scope:
                     tg.start_soon(
-                        initiate_connection_on_app_start, status_updates_queue, watchdog_queue
+                        create_connection, status_updates_queue, watchdog_queue
                     )
                     tg.start_soon(
                         chat_client_reader,
@@ -78,7 +51,6 @@ async def main():
                     )
                     tg.start_soon(watch_for_connection, watchdog_queue)
 
-                    tg.start_soon(gui.draw, messages_queue, sending_queue, status_updates_queue)
         except ConnectionError:
             await scope.cancel()
             logger.debug("Sleeping")
@@ -103,6 +75,6 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     try:
-        run(main)
+        asyncio.run(main())
     except KeyboardInterrupt:
         pass
