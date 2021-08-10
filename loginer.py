@@ -59,7 +59,9 @@ async def login(host, port, account_hash, watchdog_queue):
 
     logged_user = await reader.readline()
 
-    watchdog_queue.put_nowait(f"Attempt to log in with token returned: {logged_user.decode()}")
+    watchdog_queue.put_nowait(
+        f"Attempt to log in with token returned: {logged_user.decode()}"
+    )
     if not json.loads(logged_user.decode()):
         writer.close()
 

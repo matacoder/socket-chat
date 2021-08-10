@@ -1,4 +1,3 @@
-
 import os
 
 from dotenv import load_dotenv
@@ -46,7 +45,9 @@ async def chat_sender(message, status_updates_queue, watchdog_queue):
     """Send message to chat after login or registration."""
     global writer
     if not writer:
-        writer = await initiate_connection_on_app_start(status_updates_queue, watchdog_queue)
+        writer = await initiate_connection_on_app_start(
+            status_updates_queue, watchdog_queue
+        )
 
     sanitized_message = sanitize_string(message)
 
