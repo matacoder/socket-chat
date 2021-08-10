@@ -17,44 +17,34 @@ SETTINGS = {
 writer = ""
 
 
-async def create_connection(host, port, account_hash, nickname, status_updates_queue):
+async def create_connection(
+    host, port, account_hash, nickname, status_updates_queue, watchdog_queue
+):
     if status_updates_queue:
         status_updates_queue.put_nowait(gui.SendingConnectionStateChanged.INITIATED)
     global writer
     writer = await authenticate(host, port, account_hash, nickname)
-    if status_updates_queue:
-        status_updates_queue.put_nowait(gui.SendingConnectionStateChanged.ESTABLISHED)
+    status_updates_queue.put_nowait(gui.SendingConnectionStateChanged.ESTABLISHED)
+    watchdog_queue.put_nowait("Sending connection established.")
     return writer
 
 
-async def handle_connection(host, port, account_hash, nickname, status_updates_queue):
+async def create_sender_connection(status_updates_queue, watchdog_queue):
     global writer
-    while True:
-        if not writer:
-            writer = await create_connection(
-                host, port, account_hash, nickname, status_updates_queue
-            )
-
-        try:
-            await writer.write()
-            logger.debug("Pinging")
-        finally:
-            writer.close()
-            if status_updates_queue:
-                status_updates_queue.put_nowait(
-                    gui.SendingConnectionStateChanged.CLOSED
-                )
+    account_hash, nickname = load_from_dotenv()
+    writer = await create_connection(
+        SETTINGS["host"],
+        SETTINGS["port"],
+        account_hash,
+        nickname,
+        status_updates_queue,
+        watchdog_queue,
+    )
 
 
-async def chat_sender(
-    host, port, account_hash, nickname, message, status_updates_queue=None, watchdog_queue=None
-):
+async def chat_sender(message, watchdog_queue):
     """Send message to chat after login or registration."""
     global writer
-    if not writer:
-        writer = await create_connection(
-            host, port, account_hash, nickname, status_updates_queue
-        )
 
     sanitized_message = sanitize_string(message)
 
@@ -72,12 +62,7 @@ async def send_from_gui(sending_queue, status_updates_queue, watchdog_queue):
         message = await sending_queue.get()
         if message:
             await chat_sender(
-                SETTINGS["host"],
-                SETTINGS["port"],
-                account_hash,
-                nickname,
                 message,
-                status_updates_queue,
                 watchdog_queue,
             )
 

@@ -8,7 +8,7 @@ from loguru import logger
 
 import gui
 from reader import chat_client_reader
-from sender import send_from_gui
+from sender import send_from_gui, create_sender_connection
 
 
 async def handle_connection(watchdog_queue):
@@ -33,10 +33,16 @@ async def main():
     coroutines = [
         gui.draw(messages_queue, sending_queue, status_updates_queue),
         chat_client_reader(
-            args.host, args.port, args.logfile, messages_queue, status_updates_queue, watchdog_queue,
+            args.host,
+            args.port,
+            args.logfile,
+            messages_queue,
+            status_updates_queue,
+            watchdog_queue,
         ),
         send_from_gui(sending_queue, status_updates_queue, watchdog_queue),
         handle_connection(watchdog_queue),
+        create_sender_connection(status_updates_queue, watchdog_queue),
     ]
 
     await asyncio.gather(*coroutines, return_exceptions=True)
