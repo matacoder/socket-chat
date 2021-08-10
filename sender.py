@@ -1,7 +1,8 @@
+import asyncio
 import os
 
 from dotenv import load_dotenv
-
+from loguru import logger
 
 import gui
 from loginer import authenticate
@@ -12,7 +13,7 @@ SETTINGS = {
     "port": 5050,
 }
 
-writer = ""
+writer = None
 
 
 async def create_connection(status_updates_queue, watchdog_queue):
@@ -27,31 +28,26 @@ async def create_connection(status_updates_queue, watchdog_queue):
     return writer
 
 
-async def chat_sender(message, status_updates_queue, watchdog_queue):
-    """Send message to chat after login or registration."""
-    global writer
-    if not writer:
-        writer = await create_connection(status_updates_queue, watchdog_queue)
-
-    sanitized_message = sanitize_string(message)
-
-    writer.write(f"{sanitized_message}\n\n".encode())
-    watchdog_queue.put_nowait("Message sent")
-
-
 async def send_from_gui(sending_queue, status_updates_queue, watchdog_queue):
     """Send message from GUI."""
     account_hash, nickname = load_from_dotenv()
     event = gui.NicknameReceived(nickname)
     status_updates_queue.put_nowait(event)
+    global writer
+    if not writer:
+        writer = await create_connection(status_updates_queue, watchdog_queue)
     while True:
-        message = await sending_queue.get()
-        if message:
-            await chat_sender(
-                message,
-                status_updates_queue,
-                watchdog_queue,
-            )
+        try:
+            message = await sending_queue.get()
+            if message:
+                sanitized_message = sanitize_string(message)
+                writer.write(f"{sanitized_message}\n\n".encode())
+                watchdog_queue.put_nowait("Message sent")
+        except asyncio.CancelledError:
+            writer.close()
+            logger.debug("Writing connection lost as well.")
+            status_updates_queue.put_nowait(gui.SendingConnectionStateChanged.CLOSED)
+            break
 
 
 def load_from_dotenv():
