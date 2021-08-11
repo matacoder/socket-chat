@@ -54,7 +54,9 @@ async def chat_client_reader(messages_queue, watchdog_queue, status_updates_queu
                     current_formatted_datetime = datetime.datetime.now().strftime(
                         "[%Y.%m.%d %H:%M:%S]"
                     )
-                    message_with_datetime = f"{current_formatted_datetime} {message.decode()}"
+                    message_with_datetime = (
+                        f"{current_formatted_datetime} {message.decode()}"
+                    )
                     async with aiofiles.open(log_file_name, "a") as chat_logs:
                         await chat_logs.write(message_with_datetime)
                     messages_queue.put_nowait(message_with_datetime.rstrip())

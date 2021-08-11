@@ -52,7 +52,6 @@ async def ping_pong(watchdog_queue):
         await asyncio.sleep(5)
 
 
-
 async def send_from_gui(sending_queue, status_updates_queue, watchdog_queue):
     """Send message from GUI."""
     account_hash, nickname = load_from_dotenv()
@@ -71,7 +70,9 @@ async def send_from_gui(sending_queue, status_updates_queue, watchdog_queue):
             except asyncio.CancelledError:
                 writer.close()
                 logger.debug("Writing connection lost as well.")
-                status_updates_queue.put_nowait(gui.SendingConnectionStateChanged.CLOSED)
+                status_updates_queue.put_nowait(
+                    gui.SendingConnectionStateChanged.CLOSED
+                )
                 break
         else:
             await asyncio.sleep(0)

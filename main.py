@@ -30,11 +30,10 @@ async def handle_connection(
         try:
             async with create_task_group() as tg:
                 with CancelScope() as scope:
+                    tg.start_soon(connect_sender, status_updates_queue, watchdog_queue)
                     tg.start_soon(
-                        connect_sender, status_updates_queue, watchdog_queue
-                    )
-                    tg.start_soon(
-                        connect_reader, status_updates_queue,
+                        connect_reader,
+                        status_updates_queue,
                     )
 
                     tg.start_soon(
