@@ -16,7 +16,7 @@ SETTINGS = {
 writer = None
 
 
-async def create_connection(status_updates_queue, watchdog_queue):
+async def connect_sender(status_updates_queue, watchdog_queue):
     account_hash, nickname = load_from_dotenv()
     status_updates_queue.put_nowait(gui.SendingConnectionStateChanged.INITIATED)
     global writer
@@ -35,17 +35,20 @@ async def send_from_gui(sending_queue, status_updates_queue, watchdog_queue):
     status_updates_queue.put_nowait(event)
 
     while True:
-        try:
-            message = await sending_queue.get()
-            if message:
-                sanitized_message = sanitize_string(message)
-                writer.write(f"{sanitized_message}\n\n".encode())
-                watchdog_queue.put_nowait("Message sent")
-        except asyncio.CancelledError:
-            writer.close()
-            logger.debug("Writing connection lost as well.")
-            status_updates_queue.put_nowait(gui.SendingConnectionStateChanged.CLOSED)
-            break
+        if writer:
+            try:
+                message = await sending_queue.get()
+                if message:
+                    sanitized_message = sanitize_string(message)
+                    writer.write(f"{sanitized_message}\n\n".encode())
+                    watchdog_queue.put_nowait("Message sent")
+            except asyncio.CancelledError:
+                writer.close()
+                logger.debug("Writing connection lost as well.")
+                status_updates_queue.put_nowait(gui.SendingConnectionStateChanged.CLOSED)
+                break
+        else:
+            await asyncio.sleep(0)
 
 
 def load_from_dotenv():

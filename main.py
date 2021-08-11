@@ -1,26 +1,25 @@
 import asyncio
 
-import argparse
+
 import datetime
 
 from async_timeout import timeout
 from loguru import logger
 
 import gui
-from reader import chat_client_reader
-from sender import send_from_gui, create_connection
-from anyio import sleep, create_task_group, run, CancelScope
+from reader import chat_client_reader, connect_reader
+from sender import send_from_gui, connect_sender
+from anyio import sleep, create_task_group, CancelScope
 
 
 async def watch_for_connection(watchdog_queue):
     while True:
         try:
-            async with timeout(5):
+            async with timeout(15):
                 message = await watchdog_queue.get()
                 logger.debug(f"[{datetime.datetime.now().isoformat()}] {message}")
         except asyncio.TimeoutError:
             logger.debug("Timeout")
-            global is_app_online
             raise ConnectionError
 
 
@@ -32,13 +31,17 @@ async def handle_connection(
             async with create_task_group() as tg:
                 with CancelScope() as scope:
                     tg.start_soon(
-                        create_connection, status_updates_queue, watchdog_queue
+                        connect_sender, status_updates_queue, watchdog_queue
                     )
+                    tg.start_soon(
+                        connect_reader, status_updates_queue,
+                    )
+
                     tg.start_soon(
                         chat_client_reader,
                         messages_queue,
-                        status_updates_queue,
                         watchdog_queue,
+                        status_updates_queue,
                     )
                     tg.start_soon(
                         send_from_gui,

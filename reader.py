@@ -14,19 +14,24 @@ READER_SETTINGS = {
     "logfile": "chat_logs.txt",
 }
 
+reader = None
+writer = None
 
-async def chat_client_reader(messages_queue, status_updates_queue, watchdog_queue):
-    """Stream messages from chat to stdout."""
-    host, port, log_file_name = READER_SETTINGS.values()
+
+async def connect_reader(status_updates_queue):
+    global reader
+    global writer
+    host, port, _ = READER_SETTINGS.values()
+    logger.debug(f"{host}:{port}")
     status_updates_queue.put_nowait(gui.ReadConnectionStateChanged.INITIATED)
-    try:
-        async with timeout(2):
-            reader, writer = await asyncio.open_connection(host, port)
-            status_updates_queue.put_nowait(gui.ReadConnectionStateChanged.ESTABLISHED)
-    except asyncio.TimeoutError:
-        status_updates_queue.put_nowait(gui.ReadConnectionStateChanged.CLOSED)
-        raise
+    reader, writer = await asyncio.open_connection(host, port)
+    status_updates_queue.put_nowait(gui.ReadConnectionStateChanged.ESTABLISHED)
 
+
+
+async def chat_client_reader(messages_queue, watchdog_queue, status_updates_queue):
+    """Stream messages from chat to stdout."""
+    log_file_name = READER_SETTINGS["logfile"]
     try:
         async with aiofiles.open(log_file_name, "r") as chat_logs:
             logs = await chat_logs.readlines()
@@ -34,7 +39,8 @@ async def chat_client_reader(messages_queue, status_updates_queue, watchdog_queu
                 messages_queue.put_nowait(log.rstrip())
     except FileNotFoundError:
         messages_queue.put_nowait("File with messages history not found.")
-
+    global reader
+    global writer
     while True:
         try:
             message = await reader.readline()
