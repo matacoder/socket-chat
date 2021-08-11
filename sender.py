@@ -45,6 +45,7 @@ async def ping_pong(watchdog_queue):
     global writer
     global reader
     while True:
+        logger.debug("Ping pong loop")
         if writer and reader:
             try:
                 async with async_timeout.timeout(10):
@@ -68,23 +69,27 @@ async def send_from_gui(sending_queue, status_updates_queue, watchdog_queue):
     status_updates_queue.put_nowait(event)
 
     while True:
+        logger.debug("Send from GUI loop")
         if writer:
-            try:
-                message = await sending_queue.get()
-                if message:
-                    sanitized_message = sanitize_string(message)
-                    writer.write(f"{sanitized_message}\n\n".encode())
-                    await writer.drain()
-                    watchdog_queue.put_nowait("Message sent")
-            except asyncio.CancelledError:
-                writer.close()
-                logger.debug("Writing connection lost as well.")
-                status_updates_queue.put_nowait(
-                    gui.SendingConnectionStateChanged.CLOSED
-                )
-                break
+            if not writer.is_closing():
+                try:
+                    message = await sending_queue.get()
+                    if message:
+                        sanitized_message = sanitize_string(message)
+                        writer.write(f"{sanitized_message}\n\n".encode())
+                        await writer.drain()
+                        watchdog_queue.put_nowait("Message sent")
+                except asyncio.CancelledError:
+                    writer.close()
+                    logger.debug("Writing connection lost as well.")
+                    status_updates_queue.put_nowait(
+                        gui.SendingConnectionStateChanged.CLOSED
+                    )
+                    break
+            else:
+                await asyncio.sleep(3)
         else:
-            await asyncio.sleep(0)
+            await asyncio.sleep(3)
 
 
 def load_from_dotenv():

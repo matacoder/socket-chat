@@ -32,6 +32,7 @@ async def handle_connection(
     messages_queue, sending_queue, status_updates_queue, watchdog_queue
 ):
     while True:
+        logger.debug("Handle loop")
         try:
             async with create_task_group() as tg:
                 with CancelScope() as scope:
