@@ -8,7 +8,7 @@ from loguru import logger
 
 import gui
 from reader import chat_client_reader, connect_reader, load_chat_logs
-from sender import send_from_gui, connect_sender
+from sender import send_from_gui, connect_sender, ping_pong
 from anyio import sleep, create_task_group, CancelScope
 
 
@@ -50,6 +50,7 @@ async def handle_connection(
                         watchdog_queue,
                     )
                     tg.start_soon(watch_for_connection, watchdog_queue)
+                    tg.start_soon(ping_pong, watchdog_queue)
 
         except ConnectionError:
             await scope.cancel()

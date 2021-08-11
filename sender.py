@@ -1,6 +1,7 @@
 import asyncio
 import os
 
+import async_timeout
 from dotenv import load_dotenv
 from loguru import logger
 
@@ -13,6 +14,7 @@ SETTINGS = {
     "port": 5050,
 }
 
+reader = None
 writer = None
 
 
@@ -20,12 +22,35 @@ async def connect_sender(status_updates_queue, watchdog_queue):
     account_hash, nickname = load_from_dotenv()
     status_updates_queue.put_nowait(gui.SendingConnectionStateChanged.INITIATED)
     global writer
-    writer = await authenticate(
+    global reader
+    reader, writer = await authenticate(
         SETTINGS["host"], SETTINGS["port"], account_hash, nickname, watchdog_queue
     )
     status_updates_queue.put_nowait(gui.SendingConnectionStateChanged.ESTABLISHED)
     watchdog_queue.put_nowait("Sending connection established.")
     return writer
+
+
+async def ping_pong(watchdog_queue):
+    global writer
+    global reader
+    while True:
+        if writer and reader:
+            try:
+                async with async_timeout.timeout(15):
+                    writer.write("\n".encode())
+                    await writer.drain()
+                    message = await reader.readline()
+                    if message:
+                        watchdog_queue.put_nowait(f"Pong, {message.decode()}")
+            except TimeoutError:
+                logger.debug("Ping timeout")
+                raise
+            except asyncio.CancelledError:
+                logger.debug("Ping cancelled!")
+                break
+        await asyncio.sleep(5)
+
 
 
 async def send_from_gui(sending_queue, status_updates_queue, watchdog_queue):
@@ -41,6 +66,7 @@ async def send_from_gui(sending_queue, status_updates_queue, watchdog_queue):
                 if message:
                     sanitized_message = sanitize_string(message)
                     writer.write(f"{sanitized_message}\n\n".encode())
+                    await writer.drain()
                     watchdog_queue.put_nowait("Message sent")
             except asyncio.CancelledError:
                 writer.close()

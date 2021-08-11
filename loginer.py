@@ -83,7 +83,7 @@ async def login(host, port, account_hash, watchdog_queue):
             "Token not valid. Check it or register again by deleting current token from .env file."
         )
 
-    return writer
+    return reader, writer
 
 
 async def authenticate(host, port, account_hash, name, watchdog_queue):
@@ -91,5 +91,5 @@ async def authenticate(host, port, account_hash, name, watchdog_queue):
     if not account_hash:
         account_hash = await register(host, port, name, watchdog_queue)
 
-    writer = await login(host, port, account_hash, watchdog_queue)
-    return writer
+    reader, writer = await login(host, port, account_hash, watchdog_queue)
+    return reader, writer
