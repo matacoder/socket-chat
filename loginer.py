@@ -11,8 +11,8 @@ from tkinter import messagebox
 
 async def save_user_to_dotenv(logged_user):
     """Save created user to .env file."""
-    account_hash_env = f"uid={logged_user['account_hash']}\n"
-    username_env = f"username={logged_user['nickname']}"
+    account_hash_env = f"account_hash={logged_user['account_hash']}\n"
+    username_env = f"nickname={logged_user['nickname']}"
     async with aiofiles.open(".env", "w") as dotenv:
         await dotenv.writelines(
             [
@@ -22,7 +22,7 @@ async def save_user_to_dotenv(logged_user):
         )
 
 
-async def register(host, port, name, watchdog_queue):
+async def register(host, port, name, watchdog_queue=None):
     """Log in user, return login info dict."""
     try:
         reader, writer = await asyncio.open_connection(host, port)
@@ -31,13 +31,15 @@ async def register(host, port, name, watchdog_queue):
         raise
 
     welcome_message = await reader.readline()
-    watchdog_queue.put_nowait(welcome_message.decode())
+    if watchdog_queue:
+        watchdog_queue.put_nowait(welcome_message.decode())
 
     writer.write(f"\n".encode())
     await writer.drain()
 
     nickname_query = await reader.readline()
-    watchdog_queue.put_nowait(nickname_query.decode())
+    if watchdog_queue:
+        watchdog_queue.put_nowait(nickname_query.decode())
 
     if not name:
         name = "Anonymous"
@@ -46,11 +48,12 @@ async def register(host, port, name, watchdog_queue):
 
     logged_user_json = await reader.readline()
     logged_user = json.loads(logged_user_json.decode())
-    watchdog_queue.put_nowait(f"Created a new user: {logged_user}")
+    if watchdog_queue:
+        watchdog_queue.put_nowait(f"Created a new user: {logged_user}")
     await save_user_to_dotenv(logged_user)
     writer.close()
 
-    return logged_user["account_hash"]
+    return logged_user.values()
 
 
 async def login(host, port, account_hash, watchdog_queue):
@@ -89,7 +92,7 @@ async def login(host, port, account_hash, watchdog_queue):
 async def authenticate(host, port, account_hash, name, watchdog_queue):
     """Login if possible or register new user."""
     if not account_hash:
-        account_hash = await register(host, port, name, watchdog_queue)
+        _, account_hash = await register(host, port, name, watchdog_queue)
 
     reader, writer = await login(host, port, account_hash, watchdog_queue)
     return reader, writer
