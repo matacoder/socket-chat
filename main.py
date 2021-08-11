@@ -2,9 +2,7 @@ import asyncio
 
 
 import datetime
-import socket
 
-import anyio
 from async_timeout import timeout
 from loguru import logger
 
@@ -15,9 +13,7 @@ from anyio import (
     sleep,
     create_task_group,
     CancelScope,
-    ExceptionGroup,
     run,
-    get_cancelled_exc_class,
 )
 
 
