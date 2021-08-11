@@ -1,5 +1,6 @@
 import asyncio
 import datetime
+import socket
 
 import aiofiles
 from async_timeout import timeout
@@ -24,8 +25,11 @@ async def connect_reader(status_updates_queue):
     host, port, _ = READER_SETTINGS.values()
     logger.debug(f"{host}:{port}")
     status_updates_queue.put_nowait(gui.ReadConnectionStateChanged.INITIATED)
-    reader, writer = await asyncio.open_connection(host, port)
-    status_updates_queue.put_nowait(gui.ReadConnectionStateChanged.ESTABLISHED)
+    try:
+        reader, writer = await asyncio.open_connection(host, port)
+        status_updates_queue.put_nowait(gui.ReadConnectionStateChanged.ESTABLISHED)
+    except socket.gaierror:
+        logger.debug("Reader gaierror")
 
 
 async def load_chat_logs(messages_queue):

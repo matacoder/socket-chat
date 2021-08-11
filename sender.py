@@ -1,5 +1,6 @@
 import asyncio
 import os
+import socket
 
 import async_timeout
 from dotenv import load_dotenv
@@ -23,12 +24,14 @@ async def connect_sender(status_updates_queue, watchdog_queue):
     status_updates_queue.put_nowait(gui.SendingConnectionStateChanged.INITIATED)
     global writer
     global reader
-    reader, writer = await authenticate(
-        SETTINGS["host"], SETTINGS["port"], account_hash, nickname, watchdog_queue
-    )
-    status_updates_queue.put_nowait(gui.SendingConnectionStateChanged.ESTABLISHED)
-    watchdog_queue.put_nowait("Sending connection established.")
-    return writer
+    try:
+        reader, writer = await authenticate(
+            SETTINGS["host"], SETTINGS["port"], account_hash, nickname, watchdog_queue
+        )
+        status_updates_queue.put_nowait(gui.SendingConnectionStateChanged.ESTABLISHED)
+        watchdog_queue.put_nowait("Sending connection established.")
+    except socket.gaierror:
+        logger.debug("Sender gaierror")
 
 
 async def ping_pong(watchdog_queue):
@@ -37,7 +40,7 @@ async def ping_pong(watchdog_queue):
     while True:
         if writer and reader:
             try:
-                async with async_timeout.timeout(15):
+                async with async_timeout.timeout(10):
                     writer.write("\n".encode())
                     await writer.drain()
                     message = await reader.readline()
@@ -45,7 +48,6 @@ async def ping_pong(watchdog_queue):
                         watchdog_queue.put_nowait(f"Pong, {message.decode()}")
             except TimeoutError:
                 logger.debug("Ping timeout")
-                raise
             except asyncio.CancelledError:
                 logger.debug("Ping cancelled!")
                 break

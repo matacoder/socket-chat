@@ -2,14 +2,23 @@ import asyncio
 
 
 import datetime
+import socket
 
+import anyio
 from async_timeout import timeout
 from loguru import logger
 
 import gui
 from reader import chat_client_reader, connect_reader, load_chat_logs
 from sender import send_from_gui, connect_sender, ping_pong
-from anyio import sleep, create_task_group, CancelScope
+from anyio import (
+    sleep,
+    create_task_group,
+    CancelScope,
+    ExceptionGroup,
+    run,
+    get_cancelled_exc_class,
+)
 
 
 async def watch_for_connection(watchdog_queue):
@@ -78,6 +87,6 @@ async def main():
 
 if __name__ == "__main__":
     try:
-        asyncio.run(main())
-    except BaseException as e:
+        run(main)
+    except KeyboardInterrupt as e:
         logger.debug(e)
