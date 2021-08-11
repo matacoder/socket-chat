@@ -8,10 +8,16 @@ from loguru import logger
 import gui
 
 
-async def chat_client_reader(
-    host, port, log_file_name, messages_queue, status_updates_queue, watchdog_queue
-):
+READER_SETTINGS = {
+    "host": "minechat.dvmn.org",
+    "port": 5000,
+    "logfile": "chat_logs.txt",
+}
+
+
+async def chat_client_reader(messages_queue, status_updates_queue, watchdog_queue):
     """Stream messages from chat to stdout."""
+    host, port, log_file_name = READER_SETTINGS.values()
     status_updates_queue.put_nowait(gui.ReadConnectionStateChanged.INITIATED)
     try:
         async with timeout(2):

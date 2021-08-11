@@ -24,12 +24,9 @@ async def watch_for_connection(watchdog_queue):
             raise ConnectionError
 
 
-async def main():
-    messages_queue = asyncio.Queue()
-    sending_queue = asyncio.Queue()
-    status_updates_queue = asyncio.Queue()
-    watchdog_queue = asyncio.Queue()
-    asyncio.create_task(gui.draw(messages_queue, sending_queue, status_updates_queue))
+async def handle_connection(
+    messages_queue, sending_queue, status_updates_queue, watchdog_queue
+):
     while True:
         try:
             async with create_task_group() as tg:
@@ -39,9 +36,6 @@ async def main():
                     )
                     tg.start_soon(
                         chat_client_reader,
-                        args.host,
-                        args.port,
-                        args.logfile,
                         messages_queue,
                         status_updates_queue,
                         watchdog_queue,
@@ -65,18 +59,20 @@ async def main():
             await sleep(5)
 
 
+async def main():
+    messages_queue = asyncio.Queue()
+    sending_queue = asyncio.Queue()
+    status_updates_queue = asyncio.Queue()
+    watchdog_queue = asyncio.Queue()
+
+    asyncio.create_task(gui.draw(messages_queue, sending_queue, status_updates_queue))
+
+    await handle_connection(
+        messages_queue, sending_queue, status_updates_queue, watchdog_queue
+    )
+
+
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Connect to chat via socket.")
-    parser.add_argument(
-        "--host", help="Specify host to connect.", default="minechat.dvmn.org"
-    )
-    parser.add_argument("--port", help="Specify port to connect.", default=5000)
-    parser.add_argument(
-        "--logfile", help="Specify path to file to save logs.", default="chat_logs.txt"
-    )
-
-    args = parser.parse_args()
-
     try:
         asyncio.run(main())
     except KeyboardInterrupt:
