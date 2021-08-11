@@ -77,16 +77,21 @@ async def main():
     status_updates_queue = asyncio.Queue()
     watchdog_queue = asyncio.Queue()
 
-    asyncio.create_task(gui.draw(messages_queue, sending_queue, status_updates_queue))
-    asyncio.create_task(load_chat_logs(messages_queue))
-
-    await handle_connection(
-        messages_queue, sending_queue, status_updates_queue, watchdog_queue
-    )
+    async with create_task_group() as tg:
+        tg.start_soon(gui.draw, messages_queue, sending_queue, status_updates_queue)
+        tg.start_soon(load_chat_logs, messages_queue)
+        tg.start_soon(
+            handle_connection,
+            messages_queue,
+            sending_queue,
+            status_updates_queue,
+            watchdog_queue,
+        )
 
 
 if __name__ == "__main__":
     try:
         run(main)
-    except KeyboardInterrupt as e:
-        logger.debug(e)
+    except (KeyboardInterrupt, gui.TkAppClosed):
+        logger.debug("Closing")
+        exit(0)

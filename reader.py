@@ -25,11 +25,12 @@ async def connect_reader(status_updates_queue):
     host, port, _ = READER_SETTINGS.values()
     logger.debug(f"{host}:{port}")
     status_updates_queue.put_nowait(gui.ReadConnectionStateChanged.INITIATED)
-    try:
-        reader, writer = await asyncio.open_connection(host, port)
-        status_updates_queue.put_nowait(gui.ReadConnectionStateChanged.ESTABLISHED)
-    except socket.gaierror:
-        logger.debug("Reader gaierror")
+    async with timeout(3):
+        try:
+            reader, writer = await asyncio.open_connection(host, port)
+            status_updates_queue.put_nowait(gui.ReadConnectionStateChanged.ESTABLISHED)
+        except socket.gaierror:
+            logger.debug("Reader gaierror")
 
 
 async def load_chat_logs(messages_queue):
@@ -66,6 +67,7 @@ async def chat_client_reader(messages_queue, watchdog_queue, status_updates_queu
                     messages_queue.put_nowait(message_with_datetime.rstrip())
             except asyncio.CancelledError:
                 writer.close()
+
                 logger.debug("Close reader")
                 status_updates_queue.put_nowait(gui.ReadConnectionStateChanged.CLOSED)
                 break

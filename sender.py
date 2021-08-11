@@ -24,14 +24,21 @@ async def connect_sender(status_updates_queue, watchdog_queue):
     status_updates_queue.put_nowait(gui.SendingConnectionStateChanged.INITIATED)
     global writer
     global reader
-    try:
-        reader, writer = await authenticate(
-            SETTINGS["host"], SETTINGS["port"], account_hash, nickname, watchdog_queue
-        )
-        status_updates_queue.put_nowait(gui.SendingConnectionStateChanged.ESTABLISHED)
-        watchdog_queue.put_nowait("Sending connection established.")
-    except socket.gaierror:
-        logger.debug("Sender gaierror")
+    async with async_timeout.timeout(3):
+        try:
+            reader, writer = await authenticate(
+                SETTINGS["host"],
+                SETTINGS["port"],
+                account_hash,
+                nickname,
+                watchdog_queue,
+            )
+            status_updates_queue.put_nowait(
+                gui.SendingConnectionStateChanged.ESTABLISHED
+            )
+            watchdog_queue.put_nowait("Sending connection established.")
+        except socket.gaierror:
+            logger.debug("Sender gaierror")
 
 
 async def ping_pong(watchdog_queue):
