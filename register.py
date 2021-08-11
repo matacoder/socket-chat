@@ -1,6 +1,6 @@
 from tkinter import *
 from functools import partial
-from dotenv import load_dotenv
+
 from loguru import logger
 
 from sender import load_from_dotenv
@@ -13,7 +13,7 @@ def save_new_nickname(nick):
 
 
 if __name__ == "__main__":
-    load_dotenv()
+
     account_hash, nickname = load_from_dotenv()
     logger.debug(nickname)
     # window
@@ -23,10 +23,10 @@ if __name__ == "__main__":
 
     # username label and text entry box
     user_label = Label(root, text="Username").grid(row=0, column=0)
-    username = StringVar()
+    username_tk_object = StringVar()
     if nickname:
-        username.set(nickname)
-    username_entry = Entry(root, textvariable=username).grid(row=0, column=1)
+        username_tk_object.set(nickname)
+    username_entry = Entry(root, textvariable=username_tk_object).grid(row=0, column=1)
 
     # password label and password entry box
     hash_label = Label(root, text="Account Hash").grid(row=1, column=0)
@@ -37,7 +37,7 @@ if __name__ == "__main__":
         row=1, column=1
     )
 
-    save_new_nickname = partial(save_new_nickname, username)
+    save_new_nickname = partial(save_new_nickname, username_tk_object)
 
     # login button
     login_button = Button(
