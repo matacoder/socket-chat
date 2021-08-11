@@ -7,7 +7,7 @@ from async_timeout import timeout
 from loguru import logger
 
 import gui
-from reader import chat_client_reader, connect_reader
+from reader import chat_client_reader, connect_reader, load_chat_logs
 from sender import send_from_gui, connect_sender
 from anyio import sleep, create_task_group, CancelScope
 
@@ -69,6 +69,7 @@ async def main():
     watchdog_queue = asyncio.Queue()
 
     asyncio.create_task(gui.draw(messages_queue, sending_queue, status_updates_queue))
+    asyncio.create_task(load_chat_logs(messages_queue))
 
     await handle_connection(
         messages_queue, sending_queue, status_updates_queue, watchdog_queue
@@ -78,5 +79,5 @@ async def main():
 if __name__ == "__main__":
     try:
         asyncio.run(main())
-    except KeyboardInterrupt:
-        pass
+    except BaseException as e:
+        logger.debug(e)
