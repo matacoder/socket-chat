@@ -41,3 +41,19 @@ Use GUI to send message
 App supports `.env` file with `nickname` you want to use and `account_hash` to log in.
 
 You can specify it directly using `export nickname=NickName` bash command or using arguments.
+
+## Settings
+
+You can modify connection settings in `settings.toml`
+
+Default values:
+
+```toml
+[DEFAULT]
+host: minechat.dvmn.org
+logfile: chat_logs.txt
+[READER]
+port: 5000
+[SENDER]
+port: 5050
+```
