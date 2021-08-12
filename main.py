@@ -1,5 +1,4 @@
 import asyncio
-import configparser
 
 import datetime
 
