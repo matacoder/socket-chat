@@ -7,13 +7,9 @@ from async_timeout import timeout
 from loguru import logger
 
 import gui
+from helpers import load_config
 
 
-READER_SETTINGS = {
-    "host": "minechat.dvmn.org",
-    "port": 5000,
-    "logfile": "chat_logs.txt",
-}
 
 reader = None
 writer = None
@@ -22,7 +18,9 @@ writer = None
 async def connect_reader(status_updates_queue):
     global reader
     global writer
-    host, port, _ = READER_SETTINGS.values()
+    settings = load_config()
+    host = settings["host"]
+    port = settings["reader_port"]
     logger.debug(f"{host}:{port}")
     status_updates_queue.put_nowait(gui.ReadConnectionStateChanged.INITIATED)
     async with timeout(3):
@@ -34,7 +32,8 @@ async def connect_reader(status_updates_queue):
 
 
 async def load_chat_logs(messages_queue):
-    log_file_name = READER_SETTINGS["logfile"]
+    settings = load_config()
+    log_file_name = settings["log_file_name"]
     try:
         async with aiofiles.open(log_file_name, "r") as chat_logs:
             logs = await chat_logs.readlines()
@@ -46,7 +45,8 @@ async def load_chat_logs(messages_queue):
 
 async def chat_client_reader(messages_queue, watchdog_queue, status_updates_queue):
     """Stream messages from chat to stdout."""
-    log_file_name = READER_SETTINGS["logfile"]
+    settings = load_config()
+    log_file_name = settings["log_file_name"]
 
     global reader
     global writer

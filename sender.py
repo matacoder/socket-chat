@@ -8,18 +8,14 @@ from loguru import logger
 
 import gui
 from loginer import authenticate
-from helpers import sanitize_string
-
-SETTINGS = {
-    "host": "minechat.dvmn.org",
-    "port": 5050,
-}
+from helpers import sanitize_string, load_config
 
 reader = None
 writer = None
 
 
 async def connect_sender(status_updates_queue, watchdog_queue):
+    settings = load_config()
     account_hash, nickname = load_from_dotenv()
     status_updates_queue.put_nowait(gui.SendingConnectionStateChanged.INITIATED)
     global writer
@@ -27,8 +23,8 @@ async def connect_sender(status_updates_queue, watchdog_queue):
     async with async_timeout.timeout(3):
         try:
             reader, writer = await authenticate(
-                SETTINGS["host"],
-                SETTINGS["port"],
+                settings["host"],
+                settings["sender_port"],
                 account_hash,
                 nickname,
                 watchdog_queue,

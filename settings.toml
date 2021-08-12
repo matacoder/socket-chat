@@ -1,0 +1,7 @@
+[DEFAULT]
+host: minechat.dvmn.org
+logfile: chat_logs.txt
+[READER]
+port: 5000
+[SENDER]
+port: 5050
