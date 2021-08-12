@@ -10,7 +10,6 @@ import gui
 from helpers import load_config
 
 
-
 reader = None
 writer = None
 
@@ -71,7 +70,9 @@ async def chat_client_reader(messages_queue, watchdog_queue, status_updates_queu
                     writer.close()
 
                     logger.debug("Close reader")
-                    status_updates_queue.put_nowait(gui.ReadConnectionStateChanged.CLOSED)
+                    status_updates_queue.put_nowait(
+                        gui.ReadConnectionStateChanged.CLOSED
+                    )
                     break
             else:
                 await asyncio.sleep(3)
