@@ -2,6 +2,8 @@
 
 This program has been designed to async connect to Minecraft chat.
 
+<img src=https://raw.githubusercontent.com/matacoder/socket-chat/master/screenshots/main.png />
+
 ## Installation
 
 Clone repository to your computer.
@@ -18,49 +20,24 @@ Install requirements:
 python -m pip install -r requirements.txt
 ```
 
-## Read the chat:
+## Run GUI interface of the chat:
 
 ```bash
 python -m main
 ```
 
-### Additional arguments:
+### Create a username
 
-`--host` to specify host to connect.
+Run separate script `register.py` and specify username. It will be registered at first app start.
 
-`--port` to specify port to connect.
-
-`--history` to specify path to file to save logs.
+<img src=https://raw.githubusercontent.com/matacoder/socket-chat/master/screenshots/register.png />
 
 ## Send message to chat:
+
+Use GUI to send message
 
 ### Environment variables
 
 App supports `.env` file with `nickname` you want to use and `account_hash` to log in.
 
 You can specify it directly using `export nickname=NickName` bash command or using arguments.
-
-### Send message using:
-
-```bash
-python -m sender "This is message"
-```
-
-### Additional arguments:
-
-`-u` or `--username` to specify username you want to use.
-
-`--host` to specify host to connect.
-
-`-p` or `--port` to specify port to connect.
-
-
-
-## Task description 
-
-[DevMan Async CLI chat (in russian)](https://dvmn.org/modules/async-python/lesson/underground-chat-cli/)
-
-Test chat using netcat:
-```bash
-nc minechat.dvmn.org 5000
-```
