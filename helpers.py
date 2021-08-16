@@ -14,9 +14,10 @@ def load_config():
     """Load config to main scope of app."""
     config = configparser.ConfigParser()
     config.read("settings.toml")
-    settings = dict()
-    settings["host"] = config["DEFAULT"].get("host")
-    settings["log_file_name"] = config["DEFAULT"].get("logfile")
-    settings["reader_port"] = config["READER"].get("port")
-    settings["sender_port"] = config["SENDER"].get("port")
+    settings = {
+        "host": config["DEFAULT"].get("host"),
+        "log_file_name": config["DEFAULT"].get("logfile"),
+        "reader_port": config["READER"].get("port"),
+        "sender_port": config["SENDER"].get("port"),
+    }
     return settings
