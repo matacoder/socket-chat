@@ -28,7 +28,7 @@ python -m main
 
 ### Create a username
 
-Run separate script `register.py` and specify username. It will be registered at first app start.
+Run separate script `register.py` and specify username. It will be registered instantaneously.
 
 <img src=https://user-images.githubusercontent.com/67960818/129526163-6ea3e222-0199-494a-9054-121562a7def1.png />
 
