@@ -42,7 +42,7 @@ async def load_chat_logs(messages_queue):
         messages_queue.put_nowait("File with messages history not found.")
 
 
-async def chat_client_reader(messages_queue, watchdog_queue, status_updates_queue):
+async def chat_client_reader(messages_queue, watchdog_queue, status_updates_queue, log_queue):
     """Stream messages from chat to stdout."""
     settings = load_config()
     log_file_name = settings["log_file_name"]
@@ -66,6 +66,7 @@ async def chat_client_reader(messages_queue, watchdog_queue, status_updates_queu
                         async with aiofiles.open(log_file_name, "a") as chat_logs:
                             await chat_logs.write(message_with_datetime)
                         messages_queue.put_nowait(message_with_datetime.rstrip())
+                        log_queue.put_nowait(message_with_datetime.rstrip())
                 except asyncio.CancelledError:
                     writer.close()
 

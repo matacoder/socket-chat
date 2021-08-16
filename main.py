@@ -29,7 +29,7 @@ async def watch_for_connection(watchdog_queue):
 
 
 async def handle_connection(
-    messages_queue, sending_queue, status_updates_queue, watchdog_queue
+    messages_queue, sending_queue, status_updates_queue, watchdog_queue, log_queue
 ):
     while True:
         logger.debug("Handle loop")
@@ -47,6 +47,7 @@ async def handle_connection(
                         messages_queue,
                         watchdog_queue,
                         status_updates_queue,
+                        log_queue,
                     )
                     tg.start_soon(
                         send_from_gui,
@@ -73,6 +74,7 @@ async def main():
     sending_queue = asyncio.Queue()
     status_updates_queue = asyncio.Queue()
     watchdog_queue = asyncio.Queue()
+    log_queue = asyncio.Queue()
 
     async with create_task_group() as tg:
         tg.start_soon(gui.draw, messages_queue, sending_queue, status_updates_queue)
@@ -83,6 +85,7 @@ async def main():
             sending_queue,
             status_updates_queue,
             watchdog_queue,
+            log_queue,
         )
 
 
