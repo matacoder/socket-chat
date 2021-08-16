@@ -10,26 +10,6 @@ import gui
 from helpers import load_config
 
 
-reader = None
-writer = None
-
-
-async def connect_reader(status_updates_queue):
-    global reader
-    global writer
-    settings = load_config()
-    host = settings["host"]
-    port = settings["reader_port"]
-    logger.debug(f"{host}:{port}")
-    status_updates_queue.put_nowait(gui.ReadConnectionStateChanged.INITIATED)
-    async with timeout(3):
-        try:
-            reader, writer = await asyncio.open_connection(host, port)
-            status_updates_queue.put_nowait(gui.ReadConnectionStateChanged.ESTABLISHED)
-        except socket.gaierror:
-            logger.debug("Reader gaierror")
-
-
 async def load_chat_logs(messages_queue):
     settings = load_config()
     log_file_name = settings["log_file_name"]
@@ -57,8 +37,18 @@ async def chat_client_reader(
 ):
     """Stream messages from chat to stdout."""
 
-    global reader
-    global writer
+    settings = load_config()
+    host = settings["host"]
+    port = settings["reader_port"]
+    logger.debug(f"{host}:{port}")
+    status_updates_queue.put_nowait(gui.ReadConnectionStateChanged.INITIATED)
+    async with timeout(3):
+        try:
+            reader, writer = await asyncio.open_connection(host, port)
+            status_updates_queue.put_nowait(gui.ReadConnectionStateChanged.ESTABLISHED)
+        except socket.gaierror:
+            logger.debug("Reader gaierror")
+
     while True:
         logger.debug(f"Reader loop \n{reader}\n{writer}")
         if writer and reader:

@@ -8,7 +8,7 @@ from loguru import logger
 
 import gui
 from helpers import TokenNotValidError
-from reader import chat_client_reader, connect_reader, load_chat_logs, write_to_log_file
+from reader import chat_client_reader, load_chat_logs, write_to_log_file
 from sender import send_from_gui, connect_sender, ping_pong
 from anyio import (
     sleep,
@@ -38,11 +38,6 @@ async def handle_connection(
             async with create_task_group() as tg:
                 with CancelScope() as scope:
                     tg.start_soon(connect_sender, status_updates_queue, watchdog_queue)
-                    tg.start_soon(
-                        connect_reader,
-                        status_updates_queue,
-                    )
-
                     tg.start_soon(
                         chat_client_reader,
                         messages_queue,
