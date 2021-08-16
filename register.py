@@ -23,7 +23,7 @@ async def register_new_nickname(user, hash):
     global new_nickname
     while True:
         if new_nickname:
-            logger.debug(new_nickname)
+            logger.debug(f"Passing {new_nickname}")
             nickname, account_hash = await register(
                 settings["host"],
                 settings["sender_port"],
@@ -31,7 +31,7 @@ async def register_new_nickname(user, hash):
                 watchdog_queue=None,
             )
             new_nickname = None
-
+            logger.debug(nickname, account_hash)
             user.set(nickname)
             hash.set(account_hash)
         await asyncio.sleep(0)
@@ -45,7 +45,7 @@ async def create_window():
 
     root = Tk()
     root.geometry("400x150")
-    root.title("Nickname saver.")
+    root.title("Nickname registration")
 
     Label(root, text="Username").grid(row=0, column=0)
     username_tk_object = StringVar()
@@ -76,5 +76,5 @@ if __name__ == "__main__":
         asyncio.run(create_window())
     except TkAppClosed:
         pass
-    except KeyboardInterrupt:
-        pass
+    # except KeyboardInterrupt:
+    #     pass

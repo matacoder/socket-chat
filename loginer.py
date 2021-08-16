@@ -11,6 +11,7 @@ from tkinter import messagebox
 
 async def save_user_to_dotenv(logged_user):
     """Save created user to .env file."""
+    logger.debug("Saving...")
     account_hash_env = f"account_hash={logged_user['account_hash']}\n"
     username_env = f"nickname={logged_user['nickname']}"
     async with aiofiles.open(".env", "w") as dotenv:
@@ -24,6 +25,7 @@ async def save_user_to_dotenv(logged_user):
 
 async def register(host, port, name, watchdog_queue=None):
     """Log in user, return login info dict."""
+    logger.debug("Registering")
     try:
         reader, writer = await asyncio.open_connection(host, port)
     except ConnectionError:
@@ -33,7 +35,7 @@ async def register(host, port, name, watchdog_queue=None):
     welcome_message = await reader.readline()
     if watchdog_queue:
         watchdog_queue.put_nowait(welcome_message.decode())
-
+    logger.debug(welcome_message)
     writer.write(f"\n".encode())
     await writer.drain()
 
