@@ -51,30 +51,26 @@ async def chat_client_reader(
 
     while True:
         logger.debug(f"Reader loop \n{reader}\n{writer}")
-        if writer and reader:
-            if not reader.at_eof():
-                try:
-                    message = await reader.readline()
-                    if message:
-                        watchdog_queue.put_nowait("Message have been read from server.")
-                        current_formatted_datetime = datetime.datetime.now().strftime(
-                            "[%Y.%m.%d %H:%M:%S]"
-                        )
-                        message_with_datetime = (
-                            f"{current_formatted_datetime} {message.decode()}"
-                        )
 
-                        messages_queue.put_nowait(message_with_datetime.rstrip())
-                        log_queue.put_nowait(message_with_datetime.rstrip())
-                except asyncio.CancelledError:
-                    writer.close()
-                    await writer.wait_closed()
-                    status_updates_queue.put_nowait(
-                        gui.ReadConnectionStateChanged.CLOSED
-                    )
-                    break
+        try:
+            message = await reader.readline()
+            if message:
+                watchdog_queue.put_nowait("Message have been read from server.")
+                current_formatted_datetime = datetime.datetime.now().strftime(
+                    "[%Y.%m.%d %H:%M:%S]"
+                )
+                message_with_datetime = (
+                    f"{current_formatted_datetime} {message.decode()}"
+                )
 
-            else:
-                await asyncio.sleep(3)
-        else:
-            await asyncio.sleep(3)
+                messages_queue.put_nowait(message_with_datetime.rstrip())
+                log_queue.put_nowait(message_with_datetime.rstrip())
+        except asyncio.CancelledError:
+            writer.close()
+            await writer.wait_closed()
+            status_updates_queue.put_nowait(
+                gui.ReadConnectionStateChanged.CLOSED
+            )
+            break
+
+
