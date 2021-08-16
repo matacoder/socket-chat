@@ -1,6 +1,7 @@
 import asyncio
 
 import datetime
+from contextlib import suppress
 
 from async_timeout import timeout
 from loguru import logger
@@ -92,8 +93,5 @@ async def main():
 
 if __name__ == "__main__":
 
-    try:
+    with suppress(KeyboardInterrupt, gui.TkAppClosed, TokenNotValidError):
         run(main)
-    except (KeyboardInterrupt, gui.TkAppClosed, TokenNotValidError):
-        logger.debug("Closing")
-        exit(0)

@@ -79,12 +79,11 @@ async def chat_client_reader(
                 except asyncio.CancelledError:
                     writer.close()
                     await writer.wait_closed()
-
-                    logger.debug("Close reader")
                     status_updates_queue.put_nowait(
                         gui.ReadConnectionStateChanged.CLOSED
                     )
                     break
+
             else:
                 await asyncio.sleep(3)
         else:
