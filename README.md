@@ -2,7 +2,7 @@
 
 This program has been designed to async connect to Minecraft chat.
 
-<img src=https://raw.githubusercontent.com/matacoder/socket-chat/master/screenshots/main.png />
+<img src=https://user-images.githubusercontent.com/67960818/129526168-5c7625a4-334e-44f5-a6d0-1ea97c29cbf2.png />
 
 ## Installation
 
@@ -30,7 +30,7 @@ python -m main
 
 Run separate script `register.py` and specify username. It will be registered at first app start.
 
-<img src=https://raw.githubusercontent.com/matacoder/socket-chat/master/screenshots/register.png />
+<img src=https://user-images.githubusercontent.com/67960818/129526163-6ea3e222-0199-494a-9054-121562a7def1.png />
 
 ## Send message to chat:
 

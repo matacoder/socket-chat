@@ -74,7 +74,6 @@ async def create_window():
 if __name__ == "__main__":
     try:
         asyncio.run(create_window())
-    except TkAppClosed:
-        pass
-    # except KeyboardInterrupt:
-    #     pass
+    except (TkAppClosed, KeyboardInterrupt):
+        logger.debug("Exiting...")
+        exit(0)
