@@ -2,6 +2,7 @@ import asyncio
 import json
 
 import aiofiles
+from async_timeout import timeout
 from loguru import logger
 
 from helpers import TokenNotValidError
@@ -27,8 +28,9 @@ async def register(host, port, name, watchdog_queue=None):
     """Log in user, return login info dict."""
     logger.debug("Registering")
     try:
-        reader, writer = await asyncio.open_connection(host, port)
-    except ConnectionError:
+        with timeout(5):
+            reader, writer = await asyncio.open_connection(host, port)
+    except (ConnectionError, asyncio.TimeoutError):
         logger.debug("Register failed")
         raise
 
