@@ -21,8 +21,9 @@ async def connect_sender(status_updates_queue, watchdog_queue):
     logger.debug("Connecting sender...")
     global writer
     global reader
-    async with async_timeout.timeout(3):
-        try:
+
+    try:
+        async with async_timeout.timeout(3):
             reader, writer = await authenticate(
                 settings["host"],
                 settings["sender_port"],
@@ -34,8 +35,9 @@ async def connect_sender(status_updates_queue, watchdog_queue):
                 gui.SendingConnectionStateChanged.ESTABLISHED
             )
             watchdog_queue.put_nowait("Sending connection established.")
-        except socket.gaierror:
-            logger.debug("Sender gaierror")
+
+    except socket.gaierror:
+        logger.debug("Sender gaierror")
 
 
 async def ping_pong(watchdog_queue):
