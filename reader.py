@@ -78,6 +78,7 @@ async def chat_client_reader(
                         log_queue.put_nowait(message_with_datetime.rstrip())
                 except asyncio.CancelledError:
                     writer.close()
+                    await writer.wait_closed()
 
                     logger.debug("Close reader")
                     status_updates_queue.put_nowait(

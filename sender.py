@@ -18,6 +18,7 @@ async def connect_sender(status_updates_queue, watchdog_queue):
     settings = load_config()
     account_hash, nickname = load_from_dotenv()
     status_updates_queue.put_nowait(gui.SendingConnectionStateChanged.INITIATED)
+    logger.debug("Connecting sender...")
     global writer
     global reader
     async with async_timeout.timeout(3):
@@ -42,6 +43,8 @@ async def ping_pong(watchdog_queue):
     global reader
     while True:
         logger.debug("Ping pong loop")
+        logger.debug(writer)
+
         if writer and reader:
             try:
                 async with async_timeout.timeout(10):
@@ -55,6 +58,8 @@ async def ping_pong(watchdog_queue):
             except asyncio.CancelledError:
                 logger.debug("Ping cancelled!")
                 break
+            except Exception as e:
+                logger.debug(e)
         await asyncio.sleep(5)
 
 
@@ -77,6 +82,7 @@ async def send_from_gui(sending_queue, status_updates_queue, watchdog_queue):
                         watchdog_queue.put_nowait("Message sent")
                 except asyncio.CancelledError:
                     writer.close()
+                    await writer.wait_closed()
                     logger.debug("Writing connection lost as well.")
                     status_updates_queue.put_nowait(
                         gui.SendingConnectionStateChanged.CLOSED
