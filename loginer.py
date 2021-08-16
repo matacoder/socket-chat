@@ -63,8 +63,9 @@ async def register(host, port, name, watchdog_queue=None):
 async def login(host, port, account_hash, watchdog_queue):
     """Log in user."""
     try:
-        reader, writer = await asyncio.open_connection(host, port)
-    except ConnectionError:
+        with timeout(5):
+            reader, writer = await asyncio.open_connection(host, port)
+    except (ConnectionError, asyncio.TimeoutError):
         logger.debug("Login failed")
         raise
     welcome_message = await reader.readline()
@@ -85,7 +86,6 @@ async def login(host, port, account_hash, watchdog_queue):
             "Token not valid.",
             "Check it or register again by deleting current token from .env file.",
         )
-        exit()
         raise TokenNotValidError(
             "Token not valid. Check it or register again by deleting current token from .env file."
         )

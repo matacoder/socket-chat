@@ -6,6 +6,7 @@ from async_timeout import timeout
 from loguru import logger
 
 import gui
+from helpers import TokenNotValidError
 from reader import chat_client_reader, connect_reader, load_chat_logs
 from sender import send_from_gui, connect_sender, ping_pong
 from anyio import (
@@ -89,6 +90,6 @@ if __name__ == "__main__":
 
     try:
         run(main)
-    except (KeyboardInterrupt, gui.TkAppClosed):
+    except (KeyboardInterrupt, gui.TkAppClosed, TokenNotValidError):
         logger.debug("Closing")
         exit(0)
